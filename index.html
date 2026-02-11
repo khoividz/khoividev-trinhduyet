@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Khoivi Browser V3</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0f172a" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+
+    body{
+      font-family:'Poppins',sans-serif;
+      color:white;
+      min-height:100vh;
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      background:black;
+    }
+
+    /* ANIME BACKGROUND */
+    .bg{
+      position:fixed;
+      inset:0;
+      z-index:-1;
+      background:url('https://khoinguonsangtao.vn/wp-content/uploads/2021/06/hinh-nen-may-tinh-desktop-de-thuong-anime-girl-buon.jpg') center/cover no-repeat;
+      filter:brightness(.6);
+    }
+
+    /* TOPBAR */
+    .topbar{
+      display:flex;
+      gap:8px;
+      padding:10px;
+      background:rgba(0,0,0,.4);
+      backdrop-filter:blur(12px);
+      overflow-x:auto;
+    }
+
+    .tab{
+      padding:6px 14px;
+      background:rgba(255,255,255,.12);
+      border-radius:999px;
+      cursor:pointer;
+      white-space:nowrap;
+      transition:.25s;
+      font-size:14px;
+    }
+
+    .tab.active{background:#38bdf8;color:black}
+    .add-tab{background:#22c55e;color:black;font-weight:600}
+
+    /* CENTER */
+    .center{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:20px;
+      padding:20px;
+      text-align:center;
+    }
+
+    .logo{
+      font-size:44px;
+      font-weight:600;
+      background:linear-gradient(90deg,#38bdf8,#a78bfa,#f472b6);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      animation:float 4s ease-in-out infinite;
+    }
+
+    @keyframes float{
+      0%,100%{transform:translateY(0)}
+      50%{transform:translateY(-10px)}
+    }
+
+    .clock{opacity:.85}
+
+    /* SEARCH */
+    .search-box{
+      display:flex;
+      width:min(720px,92vw);
+      background:rgba(0,0,0,.45);
+      border-radius:999px;
+      padding:12px 16px;
+      backdrop-filter:blur(16px);
+      transition:.3s;
+    }
+
+    .search-box:focus-within{
+      transform:scale(1.03);
+      box-shadow:0 0 30px rgba(56,189,248,.5);
+    }
+
+    input{
+      flex:1;
+      background:none;border:none;outline:none;
+      color:white;font-size:16px;
+    }
+
+    button{
+      border:none;background:#38bdf8;color:black;
+      padding:8px 16px;border-radius:999px;
+      cursor:pointer;font-weight:600;
+    }
+
+    /* BOOKMARK */
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(90px,1fr));
+      gap:14px;
+      width:min(600px,95vw);
+      margin-top:10px;
+    }
+
+    .site{
+      background:rgba(0,0,0,.45);
+      padding:14px 6px;border-radius:18px;
+      font-size:13px;cursor:pointer;transition:.25s;
+    }
+
+    .site:hover{transform:translateY(-4px);background:rgba(255,255,255,.2)}
+
+    /* MEME */
+    .meme{
+      position:fixed;bottom:10px;right:12px;
+      font-size:13px;opacity:.7;
+    }
+
+    @media(max-width:600px){
+      .logo{font-size:32px}
+      .search-box{flex-direction:column;gap:8px}
+      button{width:100%}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bg"></div>
+
+  <div class="topbar" id="tabs"></div>
+
+  <div class="center">
+    <div class="logo">Khoivi Đẹp Trai 😎</div>
+    <div class="clock" id="clock"></div>
+
+    <form class="search-box" id="searchForm">
+      <input id="q" placeholder="Tìm Google hoặc nhập URL…" />
+      <button>Tìm</button>
+    </form>
+
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div class="meme">"hehe, ThaoMy"</div>
+
+  <script>
+    /* CLOCK */
+    const clock=document.getElementById('clock');
+    setInterval(()=>{
+      clock.textContent=new Date().toLocaleTimeString();
+    },1000);
+
+    /* SEARCH */
+    document.getElementById('searchForm').addEventListener('submit',e=>{
+      e.preventDefault();
+      let v=q.value.trim();
+      if(!v)return;
+
+      if(v.startsWith('http')) location.href=v;
+      else location.href='https://www.google.com/search?q='+encodeURIComponent(v);
+
+      saveHistory(v);
+    });
+
+    /* HISTORY */
+    function saveHistory(v){
+      let h=JSON.parse(localStorage.getItem('khoivi_history')||'[]');
+      h.unshift(v);
+      localStorage.setItem('khoivi_history',JSON.stringify(h.slice(0,20)));
+    }
+
+    /* BOOKMARK */
+    const defaultSites=[
+      {n:'YouTube',u:'https://youtube.com'},
+      {n:'Facebook',u:'https://facebook.com'},
+      {n:'ChatGPT',u:'https://chat.openai.com'},
+      {n:'TikTok',u:'https://tiktok.com'}
+    ];
+
+    const grid=document.getElementById('grid');
+    defaultSites.forEach(s=>{
+      const d=document.createElement('div');
+      d.className='site';
+      d.textContent=s.n;
+      d.onclick=()=>location.href=s.u;
+      grid.appendChild(d);
+    });
+
+    /* TABS */
+    const tabsEl=document.getElementById('tabs');
+    let tabs=['Trang mới'];
+
+    function renderTabs(){
+      tabsEl.innerHTML='';
+      tabs.forEach((t,i)=>{
+        const el=document.createElement('div');
+        el.className='tab'+(i===0?' active':'');
+        el.textContent=t;
+        tabsEl.appendChild(el);
+      });
+
+      const add=document.createElement('div');
+      add.className='tab add-tab';
+      add.textContent='+';
+      add.onclick=()=>{tabs.unshift('Tab '+(tabs.length+1));renderTabs()};
+      tabsEl.appendChild(add);
+    }
+
+    renderTabs();
+
+    /* SERVICE WORKER */
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
+</body>
+</html>
